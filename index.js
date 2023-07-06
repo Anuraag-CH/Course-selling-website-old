@@ -94,10 +94,7 @@ app.post('/admin/login', async (req, res) => {
 });
 
 app.post('/admin/courses', authenticateJwt, async (req, res) => {
-  console.log(req.user)
-  console.log(req.body)
-  role = req.user.role
-  if (role === "admin") {
+  if (req.user.role === "admin") {
     const course = new Course(req.body);
     await course.save();
     res.json({ message: 'Course created successfully', courseId: course.id });
@@ -109,21 +106,31 @@ app.post('/admin/courses', authenticateJwt, async (req, res) => {
 });
 
 app.put('/admin/courses/:courseId', authenticateJwt, async (req, res) => {
-  const course = await Course.findByIdAndUpdate(req.params.courseId, req.body, { new: true });
-  if (course) {
-    res.json({ message: 'Course updated successfully' });
-  } else {
-    res.status(404).json({ message: 'Course not found' });
+  if (req.user.role === "admin") {
+    const course = await Course.findByIdAndUpdate(req.params.courseId, req.body, { new: true });
+    if (course) {
+      res.json({ message: 'Course updated successfully' });
+    } else {
+      res.status(404).json({ message: 'Course not found' });
+    }
+  }
+  else {
+    res.sendStatus(403)
   }
 });
 
 app.get('/admin/courses', authenticateJwt, async (req, res) => {
   // Logic to get all courses
-  const courses = await Course.find({})
-  if (courses) {
-    res.json(courses);
-  } else {
-    res.status(404).json({ message: 'Courses not found' });
+  if (req.user.role === "admin") {
+    const courses = await Course.find({})
+    if (courses) {
+      res.json(courses);
+    } else {
+      res.status(404).json({ message: 'Courses not found' });
+    }
+  }
+  else {
+    res.sendStatus(403)
   }
 });
 
