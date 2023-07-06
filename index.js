@@ -86,7 +86,7 @@ app.post('/admin/login', async (req, res) => {
   const { username, password } = req.headers;
   const admin = await Admin.findOne({ username, password });
   if (admin) {
-    const token = jwt.sign({ username, role: 'admin' }, SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ username, role: 'admin' }, secretKey, { expiresIn: '1h' });
     res.json({ message: 'Logged in successfully', token });
   } else {
     res.status(403).json({ message: 'Invalid username or password' });
@@ -117,8 +117,14 @@ app.put('/admin/courses/:courseId', authenticateJwt, async (req, res) => {
   }
 });
 
-app.get('/admin/courses', (req, res) => {
+app.get('/admin/courses', authenticateJwt, async (req, res) => {
   // Logic to get all courses
+  const courses = await Course.find({})
+  if (courses) {
+    res.json(courses);
+  } else {
+    res.status(404).json({ message: 'Courses not found' });
+  }
 });
 
 // User routes
